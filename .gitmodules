@@ -1,6 +1,6 @@
 [submodule "ethvm-frontend"]
 	path = ethvm-frontend
-	url = git@github.com:enKryptIO/ethvm.git
+	url = https://github.com/enKryptIO/ethvm
 [submodule "ethvm-server"]
 	path = ethvm-server
 	url = https://github.com/enKryptIO/ethvm-socket-server
