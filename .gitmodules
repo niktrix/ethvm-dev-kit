@@ -4,3 +4,6 @@
 [submodule "ethvm-server"]
 	path = ethvm-server
 	url = https://github.com/enKryptIO/ethvm-socket-server
+[submodule "ethvm-go-ethereum"]
+	path = ethvm-go-ethereum
+	url = https://github.com/enKryptIO/go-ethereum.git
