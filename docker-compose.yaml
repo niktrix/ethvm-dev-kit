@@ -102,6 +102,7 @@ services:
     volumes:
       - ./ethvm-server/docker/volumes/geth/:/geth
       - ./ethvm-server/docker/config/geth/genesis.json:/genesis.json
+      - ./ethvm-server/docker/config/geth/keystore/UTC--2018-07-06T11-16-07.166Z--84baabad835e6ca9252658cd6eae0152f6330c09:/geth/keystore/UTC--2018-07-06T11-16-07.166Z--84baabad835e6ca9252658cd6eae0152f6330c09
     networks:
       - web
     ports:
@@ -110,6 +111,7 @@ services:
       - "traefik.enable=true"
       - "traefik.default.protocol=http"
       - "traefik.frontend.rule=Host:geth.ethvm.lan"
+      - "traefik.port=9545"
       - "traefik.backend=geth"
     environment:
       - RETHINKDB_URL=http://admin:1234@rethinkdb:28015
@@ -117,5 +119,5 @@ services:
       - /bin/sh
       - -c
       - |
-        geth --networkid 1114 --datadir="/geth/" --ethvm --ethvm.remote init /genesis.json
-        geth --networkid 1114 --datadir="/geth/" --etherbase '0xaD4A113E28C7857dB9f24336e4ED83F6dd883DF7' --ethvm --ethvm.remote --gcmode archive --mine --minerthreads 1 --rpc --rpcaddr "0.0.0.0" --rpcport 9545 --syncmode full --maxpeers 0
+        geth --datadir="/geth/" --ethvm --ethvm.remote init /genesis.json
+        geth --datadir="/geth/" --networkid 1234 --etherbase '0x84baabad835e6ca9252658cd6eae0152f6330c09' --mine --minerthreads 1 --ethvm --ethvm.remote --gcmode archive --rpc --rpcaddr "0.0.0.0" --rpcport 9545 --syncmode full --nodiscover --maxpeers 0
