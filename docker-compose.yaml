@@ -11,7 +11,7 @@ services:
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./ethvm-server/docker/config/traefik/traefik.toml:/etc/traefik/traefik.toml
+      - ./.docker/config/traefik/traefik.toml:/etc/traefik/traefik.toml
     networks:
       - web
     ports:
@@ -20,11 +20,11 @@ services:
 
   ethvm:
     build:
-      context: ./ethvm-frontend
+      context: ./client
       dockerfile: Dockerfile.dev
     restart: unless-stopped
     volumes:
-      - ./ethvm-frontend:/var/ethvm
+      - ./client:/var/ethvm
     networks:
       - web
     labels:
@@ -41,12 +41,10 @@ services:
 
   ethvm_socket_server:
     build:
-      context: ./ethvm-server
-      dockerfile: Dockerfile.dev
-    working_dir: /var/ethvm-server
+      context: ./server
     restart: unless-stopped
     volumes:
-      - ./ethvm-server:/var/ethvm-server
+      - ./server:/var/ethvm-server
     depends_on:
       - geth
       - redis
@@ -60,6 +58,12 @@ services:
       - "traefik.frontend.headers.customResponseHeaders=Access-Control-Allow-Origin:http://ethvm.lan||Access-Control-Allow-Credentials:true"
       - "traefik.frontend.passHostHeader=true"
       - "traefik.backend=ethvm_socket_server"
+    command:
+      - /bin/sh
+      - -c
+      - |
+      - yarn install
+      - yarn start:dev
 
   redis:
     image: redis:4.0.9-alpine
@@ -74,13 +78,10 @@ services:
       - "traefik.backend=redis"
 
   rethinkdb:
-    image: enkryptio/rethinkdb:latest
+    image: rethinkdb:2.3.6
     restart: unless-stopped
     networks:
       - web
-    ports:
-      - 28015:28015
-      - 8080:8080
     labels:
       - "traefik.enable=true"
       - "traefik.default.protocol=http"
@@ -94,15 +95,15 @@ services:
 
   geth:
     build:
-      context: ./ethvm-go-ethereum
+      context: ./eth
       dockerfile: Dockerfile
     restart: unless-stopped
     depends_on:
       - rethinkdb
     volumes:
-      - ./ethvm-server/docker/volumes/geth/:/geth
-      - ./ethvm-server/docker/config/geth/genesis.json:/genesis.json
-      - ./ethvm-server/docker/config/geth/keystore/UTC--2018-07-06T11-16-07.166Z--84baabad835e6ca9252658cd6eae0152f6330c09:/geth/keystore/UTC--2018-07-06T11-16-07.166Z--84baabad835e6ca9252658cd6eae0152f6330c09
+      - ./.docker/volumes/geth/:/geth
+      - ./.docker/config/geth/genesis.json:/genesis.json
+      - ./.docker/config/geth/keystore/UTC--2018-07-06T11-16-07.166Z--84baabad835e6ca9252658cd6eae0152f6330c09:/geth/keystore/UTC--2018-07-06T11-16-07.166Z--84baabad835e6ca9252658cd6eae0152f6330c09
     networks:
       - web
     ports:
@@ -114,10 +115,10 @@ services:
       - "traefik.port=9545"
       - "traefik.backend=geth"
     environment:
-      - RETHINKDB_URL=http://admin:1234@rethinkdb:28015
+      - RETHINKDB_URL=http://rethinkdb:28015
     command:
       - /bin/sh
       - -c
       - |
         geth --datadir="/geth/" --ethvm --ethvm.remote init /genesis.json
-        geth --datadir="/geth/" --networkid 1234 --etherbase '0x84baabad835e6ca9252658cd6eae0152f6330c09' --mine --minerthreads 1 --ethvm --ethvm.remote --gcmode archive --rpc --rpcaddr "0.0.0.0" --rpcport 9545 --syncmode full --nodiscover --maxpeers 0
+        geth --datadir="/geth/" --networkid 1234 --etherbase '0x84baabad835e6ca9252658cd6eae0152f6330c09' --mine --minerthreads 1 --ethvm --gcmode archive --rpc --rpcaddr '0.0.0.0' --rpcport 9545 --syncmode full --nodiscover --maxpeers 0

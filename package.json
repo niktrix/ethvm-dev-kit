@@ -1,0 +1,29 @@
+{
+  "name": "ethvm-dev-kit",
+  "version": "1.0.0",
+  "description": "A complete Docker solution for developing EthVM project ",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/enKryptIO/ethvm-dev-kit.git"
+  },
+  "author": "enKryptIO",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/enKryptIO/ethvm-dev-kit/issues"
+  },
+  "homepage": "https://github.com/enKryptIO/ethvm-dev-kit#readme",
+  "scripts": {
+    "eth-monkey": "ts-node bin/eth-monkey.ts"
+  },
+  "dependencies": {
+    "@enkrypt.io/json-rpc2": "^1.0.2",
+    "commander": "^2.16.0",
+    "ethereumjs-tx": "^1.3.6",
+    "ora": "^2.1.0",
+    "ts-node": "^7.0.0",
+    "typescript": "^2.9.2"
+  },
+  "devDependencies": {
+    "lerna": "^2.11.0"
+  }
+}
