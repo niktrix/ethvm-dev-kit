@@ -11,5 +11,5 @@ WORKDIR /var/ethvm
 COPY . .
 
 # Expose
-EXPOSE 8080
+EXPOSE 80
 CMD yarn install && yarn start:dev
