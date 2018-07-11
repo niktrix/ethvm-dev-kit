@@ -21,7 +21,7 @@ services:
   ethvm:
     build:
       context: ./client
-      dockerfile: Dockerfile.dev
+      dockerfile: ../.docker/images/client/Dockerfile
     restart: unless-stopped
     volumes:
       - ./client:/var/ethvm
@@ -36,12 +36,13 @@ services:
       - "traefik.backend=ethvm"
     environment:
       - ETHVM_HOST=0.0.0.0
-      - ETHVM_PORT=80
+      - ETHVM_PORT=8080
       - ETVHM_DOCKER=true
 
   ethvm_socket_server:
     build:
       context: ./server
+      dockerfile: ../.docker/images/server/Dockerfile
     restart: unless-stopped
     volumes:
       - ./server:/var/ethvm-server
@@ -58,12 +59,6 @@ services:
       - "traefik.frontend.headers.customResponseHeaders=Access-Control-Allow-Origin:http://ethvm.lan||Access-Control-Allow-Credentials:true"
       - "traefik.frontend.passHostHeader=true"
       - "traefik.backend=ethvm_socket_server"
-    command:
-      - /bin/sh
-      - -c
-      - |
-      - yarn install
-      - yarn start:dev
 
   redis:
     image: redis:4.0.9-alpine
@@ -120,5 +115,5 @@ services:
       - /bin/sh
       - -c
       - |
-        geth --datadir="/geth/" --ethvm --ethvm.remote init /genesis.json
+        geth --datadir="/geth/" --ethvm init /genesis.json
         geth --datadir="/geth/" --networkid 1234 --etherbase '0x84baabad835e6ca9252658cd6eae0152f6330c09' --mine --minerthreads 1 --ethvm --gcmode archive --rpc --rpcaddr '0.0.0.0' --rpcport 9545 --syncmode full --nodiscover --maxpeers 0
