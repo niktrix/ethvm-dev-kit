@@ -1,15 +1,20 @@
 [submodule "ethvm-frontend"]
 	path = client
 	url = https://github.com/enKryptIO/ethvm
+  branch = master
 [submodule "ethvm-server"]
 	path = server
 	url = https://github.com/enKryptIO/ethvm-socket-server
+  branch = master
 [submodule "ethvm-go-ethereum"]
 	path = eth
 	url = https://github.com/enKryptIO/go-ethereum.git
+  branch = master
 [submodule "packages/node-jsonrpc2"]
 	path = packages/node-jsonrpc2
 	url = https://github.com/enKryptIO/node-jsonrpc2
+  branch = master
 [submodule "packages/ethereumjs-vm"]
 	path = packages/ethereumjs-vm
 	url = https://github.com/enKryptIO/ethereumjs-vm
+  branch = master
