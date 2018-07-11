@@ -13,7 +13,7 @@
   },
   "homepage": "https://github.com/enKryptIO/ethvm-dev-kit#readme",
   "scripts": {
-    "eth-monkey": "ts-node bin/eth-monkey.ts"
+    "monkey": "ts-node bin/monkey-cli.ts"
   },
   "dependencies": {
     "@enkrypt.io/json-rpc2": "^1.0.2",
