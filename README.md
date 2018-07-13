@@ -39,14 +39,21 @@ This file allows you to issue `git` commands inside each submodule like a regula
 So, as a summary, just before issuing the very first `docker-compose` command, we recommend you to delete each `.git` submodule file and replace it using a symbolic link that will point to the directory, just like this:
 
 ```sh
-# In parent dir
+# In parent dev-kit dir
 
 # Delete
 $ rm client/.git server/.git
 
-# Link
-$ ln -s .git/modules/ethvm-frontend client/.git
-$ ln -s .git/modules/ethvm-server server/.git
+# Link server
+$ cd server
+$ ln -s ../.git/modules/etvhm-server .git
+
+# Go to parent
+$ cd ..
+
+# Link client
+$ cd client
+$ ln -s ../.git/modules/etvhm-frontend .git
 ```
 
 ### Configuring ethereum difficulty
@@ -86,11 +93,20 @@ func CalcDifficulty(config *params.ChainConfig, time uint64, parent *types.Heade
 }
 ```
 
+### Windows 10
+
+Windows 10 is becoming a very sexy operating system to develop also with classical *nix applications. 
+
+Although, there are some caveats we need to take care of, at the point while we were testing, we found the following issues:
+
+* **go-ethereum**: Docker doesn't build properly the image [(reason here)](https://github.com/ethereum/go-ethereum/issues/16828). To solve it, for now, is to use the uploaded version on Docker Hub (so point to the following image: `enkryptio/go-ethereum:latest`)
+* **traefik**: The image uses a shared mounted volume, depending on the installed version you have of docker, it may not init properly. [In this thread here's the solution](https://github.com/docker/for-win/issues/1829) (basically, if you use PowerShell, set the environment variable `$Env:COMPOSE_CONVERT_WINDOWS_PATHS=1`).
+
 ### Setup a local DNS
 
 Internally, this `docker-compose.yaml` uses the great and the mighty [`traefik`](https://traefik.io/) as a frontend proxy. By default, all of the services are exposed under the local domain `.lan`.
 
-So, we recommend you to have a local DNS service like `DNSmasq` (instructions for [OSX](https://gist.github.com/ogrrd/5831371) or [Linux](https://wiki.archlinux.org/index.php/dnsmasq)) to resolve custom domains and to have access directly to the services with the specified domain (alternatively, you can open ports just like a regular `docker-compose` and access those with `localhost`).
+So, we recommend you to have a local DNS service like `DNSmasq` (instructions for [OSX](https://gist.github.com/ogrrd/5831371), [Linux](https://wiki.archlinux.org/index.php/dnsmasq) or [Windows](http://www.orbitale.io/2017/12/05/setup-a-dnsmasq-equivalent-on-windows-with-acrylic.html)) to resolve custom domains and to have access directly to the services with the specified domain (alternatively, you can open ports just like a regular `docker-compose` and access those with `localhost`).
 
 ## Developing
 
