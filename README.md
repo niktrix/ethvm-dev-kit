@@ -108,6 +108,16 @@ Internally, this `docker-compose.yaml` uses the great and the mighty [`traefik`]
 
 So, we recommend you to have a local DNS service like `DNSmasq` (instructions for [OSX](https://gist.github.com/ogrrd/5831371), [Linux](https://wiki.archlinux.org/index.php/dnsmasq) or [Windows](http://www.orbitale.io/2017/12/05/setup-a-dnsmasq-equivalent-on-windows-with-acrylic.html)) to resolve custom domains and to have access directly to the services with the specified domain (alternatively, you can open ports just like a regular `docker-compose` and access those with `localhost`).
 
+You can add these entries in  /etc/hosts file
+```
+127.0.0.1       geth.ethvm.lan
+127.0.0.1       rethink.ethvm.lan
+127.0.0.1       rethink.dashboard.ethvm.lan
+127.0.0.1       ws.ethvm.lan
+127.0.0.1       ethvm.lan
+
+```
+
 ## Developing
 
 Now that you have done sucessfully the prerequisites steps (yay!), it's time to get your hands dirty. Just make sure you have installed `docker` and `docker-compose` (the more recent, the better).
