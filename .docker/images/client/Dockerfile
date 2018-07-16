@@ -15,4 +15,4 @@ COPY . .
 
 # Expose
 EXPOSE 80
-CMD yarn install && yarn start:dev
+CMD yarn install && yarn dev:docker
