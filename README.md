@@ -46,14 +46,14 @@ $ rm client/.git server/.git
 
 # Link server
 $ cd server
-$ ln -s ../.git/modules/etvhm-server .git
+$ ln -s ../.git/modules/ethvm-server .git
 
 # Go to parent
 $ cd ..
 
 # Link client
 $ cd client
-$ ln -s ../.git/modules/etvhm-frontend .git
+$ ln -s ../.git/modules/ethvm-frontend .git
 ```
 
 ### Configuring ethereum difficulty
