@@ -102,20 +102,20 @@ Although, there are some caveats we need to take care of, at the point while we 
 * **go-ethereum**: Docker doesn't build properly the image [(reason here)](https://github.com/ethereum/go-ethereum/issues/16828). To solve it, for now, is to use the uploaded version on Docker Hub (so point to the following image: `enkryptio/go-ethereum:latest`)
 * **traefik**: The image uses a shared mounted volume, depending on the installed version you have of docker, it may not init properly. [In this thread here's the solution](https://github.com/docker/for-win/issues/1829) (basically, if you use PowerShell, set the environment variable `$Env:COMPOSE_CONVERT_WINDOWS_PATHS=1`).
 
-### Setup a local DNS
+### Setup a local DNS (or edit hosts file)
 
 Internally, this `docker-compose.yaml` uses the great and the mighty [`traefik`](https://traefik.io/) as a frontend proxy. By default, all of the services are exposed under the local domain `.lan`.
 
 So, we recommend you to have a local DNS service like `DNSmasq` (instructions for [OSX](https://gist.github.com/ogrrd/5831371), [Linux](https://wiki.archlinux.org/index.php/dnsmasq) or [Windows](http://www.orbitale.io/2017/12/05/setup-a-dnsmasq-equivalent-on-windows-with-acrylic.html)) to resolve custom domains and to have access directly to the services with the specified domain (alternatively, you can open ports just like a regular `docker-compose` and access those with `localhost`).
 
-You can add these entries in  /etc/hosts file
-```
+Or you can take the classical approach to edit and add these entries in `/etc/hosts` file, just like this:
+
+```sh
 127.0.0.1       geth.ethvm.lan
 127.0.0.1       rethink.ethvm.lan
 127.0.0.1       rethink.dashboard.ethvm.lan
 127.0.0.1       ws.ethvm.lan
 127.0.0.1       ethvm.lan
-
 ```
 
 ## Developing
