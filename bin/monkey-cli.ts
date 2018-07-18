@@ -7,6 +7,7 @@ import * as commander from 'commander'
 import * as Ora from 'ora'
 import * as EthereumTx from 'ethereumjs-tx'
 import * as rpc from '@enkrypt.io/json-rpc2'
+//import address from "./address.json";
 
 const version = '0.1.0'
 
@@ -15,7 +16,9 @@ const ora = new Ora({
   color: 'yellow'
 })
 
+
 const r = rpc.Client.$create(9545, 'localhost')
+declare const Buffer
 
 commander.description('Ethereum utility that helps to create random txs to aid in development').version(version, '-v, --version')
 
@@ -26,33 +29,60 @@ commander
     ora.text = 'Randomizing txs...'
     ora.start()
 
-    const privateKey = Buffer.from('577b57b339118ec72b2bf69dad1840296b11ff4333ae0de704888cd346f7eadd', 'hex')
-
-    const txParams = {
-      from: '0xaD4A113E28C7857dB9f24336e4ED83F6dd883DF7',
-      to: '0xd46e8dd67c5d32be8058bb8eb970870f07244567',
+    const privateKey = Buffer.from('c0191900e365a48547f29f3b50fa3913c0d6f1519288eab7fcbf54e33337e130', 'hex')
+    var txParams = {
+      from: '0x84baaBAd835e6Ca9252658CD6Eae0152f6330C09',
+      to: '0x53d5f815e1ffb43297cdDf1E4C94950ae464c912',
       nonce: '0x00',
-      gas: '0x05',
+      gas: '0x5208',
       gasPrice: '0x00009184e',
-      value: '0x0000000000000000010'
+      value: '0x0000000001000000001'
     }
 
-    const tx = new EthereumTx(txParams)
-    tx.sign(privateKey)
+    //get Tx count
+    //TODO: get random addres from addrss.json and send TX
+    r.call('eth_getTransactionCount',[txParams.from, 'latest'],(e: Error, res: any): void => {
+      txParams.nonce = res
+      const tx = new EthereumTx(txParams)
+      tx.sign(privateKey)
+      const serializedTx = '0x' + tx.serialize().toString('hex')
+      r.call('eth_sendRawTransaction',  [serializedTx], (e: Error, res: any): void => {
+        if (e) {
+          console.log("Error  k",e)
+          ora.clear()
+          ora.fail(`${JSON.stringify(e)}`)
+          ora.stopAndPersist()
+          return
+        }
+        ora.succeed('Txs sent!')
+        ora.stopAndPersist()
+      })
+    })
+  })
 
-    const serializedTx = '0x' + tx.serialize().toString('hex')
 
-    r.call('eth_sendRawTransaction',  [serializedTx], (e: Error, res: any): void => {
+  commander
+  .command('balance')
+  .alias('b')
+  .action(function() {
+    ora.text = 'getting bal ...'
+    ora.start()
+
+    const privateKey = Buffer.from('e2314951b1e26f5f24c99e1e410187325fe07659ef55affbd14992c1914b787e', 'hex')
+
+    r.call('eth_getBalance',  ["0x84baabad835e6ca9252658cd6eae0152f6330c09","latest"], (e: Error, res: any): void => {
       if (e) {
         ora.clear()
         ora.fail(`${JSON.stringify(e)}`)
         ora.stopAndPersist()
         return
       }
+      console.log(res)
 
-      ora.succeed('Txs sent!')
+      ora.succeed('balabnce  !', res)
       ora.stopAndPersist()
     })
   })
+
 
 commander.parse(process.argv)
