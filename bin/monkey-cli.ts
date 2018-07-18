@@ -60,29 +60,24 @@ commander
     })
   })
 
-
   commander
   .command('balance')
   .alias('b')
-  .action(function() {
-    ora.text = 'getting bal ...'
+  .action(function(address) {
+    ora.text = 'getting bal of ' + address
     ora.start()
-
     const privateKey = Buffer.from('e2314951b1e26f5f24c99e1e410187325fe07659ef55affbd14992c1914b787e', 'hex')
 
-    r.call('eth_getBalance',  ["0x84baabad835e6ca9252658cd6eae0152f6330c09","latest"], (e: Error, res: any): void => {
+    r.call('eth_getBalance',  [address,"latest"], (e: Error, res: any): void => {
       if (e) {
         ora.clear()
         ora.fail(`${JSON.stringify(e)}`)
         ora.stopAndPersist()
         return
       }
-      console.log(res)
-
-      ora.succeed('balabnce  !', res)
+      ora.succeed('balabnce  !')
       ora.stopAndPersist()
     })
   })
-
 
 commander.parse(process.argv)
