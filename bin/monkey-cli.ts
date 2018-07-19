@@ -27,7 +27,7 @@ var txParams = {
   nonce: '0x00',
   gas: '0x5208',
   gasPrice: '0x00009184e',
-  value: '0x0000000001000000001'
+  value: '0x0001000001000000001'
 }
 
 commander.description('Ethereum utility that helps to create random txs to aid in development').version(version, '-v, --version')
@@ -42,12 +42,7 @@ commander
   .action(function() {
     ora.text = 'Randomizing txs...'
     ora.start()
-     for (var _i = 0; _i < 5; _i++) {
-      var s = Math.floor(Math.random() * (accounts.length-1)) + 0
-      txParams.to = accounts[s].address
-      var privateKey = Buffer.from("c0191900e365a48547f29f3b50fa3913c0d6f1519288eab7fcbf54e33337e130", 'hex')
-      t.randomize(txParams, privateKey,0)
-     }
+    sendRandomTX(txParams,accounts,t,ora)
   })
 
   commander
@@ -56,7 +51,7 @@ commander
   .action(function() {
     ora.text = 'Randomizing txs...'
     ora.start()
-     randomTx(txParams,accounts,t,ora)
+    fillAccountsWithEther(txParams,accounts,t,ora)
   })
 
   commander
@@ -81,15 +76,13 @@ commander
 
 commander.parse(process.argv)
 
-
-
- async function randomTx(txParams,accounts,t,ora){
+ async function fillAccountsWithEther(txParams,accounts,t,ora){
      for (var _i = 0;  _i < accounts.length-1; _i++) {
       txParams.to = accounts[_i].address
       var privateKey = Buffer.from("c0191900e365a48547f29f3b50fa3913c0d6f1519288eab7fcbf54e33337e130", 'hex')
       try {
         ora.info('sending tx')
-        var done = await t.randomize(txParams, privateKey, _i)
+        var done = await t.send(txParams, privateKey, _i)
         ora.info(`${JSON.stringify(done)}`);
       } catch (error) {
         ora.fail(`${JSON.stringify(error)}`);
@@ -98,4 +91,33 @@ commander.parse(process.argv)
   }
     ora.succeed('generated   ' , accounts.length-1)
     ora.stopAndPersist()
-  }
+}
+
+
+async function sendRandomTX(txParams,accounts,t,ora){
+  for (var _i = 0; _i < 5; _i++) {
+    var to = Math.floor(Math.random() * (accounts.length-1)) + 0
+    var from = Math.floor(Math.random() * (accounts.length-1)) + 0
+    txParams.to = accounts[to].address
+    var privateKey = Buffer.from(accounts[from].key, 'hex')
+    // t.send(txParams, privateKey,0)
+    try {
+      ora.info('sending tx')
+      var done = await t.send(txParams, privateKey, _i)
+      ora.info(`${JSON.stringify(done)}`);
+    } catch (error) {
+      ora.fail(`${JSON.stringify(error)}`);
+    }
+   }
+
+
+
+  for (var _i = 0;  _i < accounts.length-1; _i++) {
+   txParams.to = accounts[_i].address
+   var privateKey = Buffer.from("c0191900e365a48547f29f3b50fa3913c0d6f1519288eab7fcbf54e33337e130", 'hex')
+
+ ora.info('sent tx')
+}
+ ora.succeed('generated   ' , accounts.length-1)
+ ora.stopAndPersist()
+}
