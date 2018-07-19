@@ -46,7 +46,7 @@ commander
       var s = Math.floor(Math.random() * (accounts.length-1)) + 0
       txParams.to = accounts[s].address
       var privateKey = Buffer.from("c0191900e365a48547f29f3b50fa3913c0d6f1519288eab7fcbf54e33337e130", 'hex')
-      t.randomize(txParams, privateKey)
+      t.randomize(txParams, privateKey,0)
      }
   })
 
@@ -79,21 +79,23 @@ commander
     })
   })
 
+commander.parse(process.argv)
+
+
 
  async function randomTx(txParams,accounts,t,ora){
-    for (var _i = 0;  _i < accounts.length-1; _i++) {
+     for (var _i = 0;  _i < accounts.length-1; _i++) {
       txParams.to = accounts[_i].address
       var privateKey = Buffer.from("c0191900e365a48547f29f3b50fa3913c0d6f1519288eab7fcbf54e33337e130", 'hex')
-     try {
-       ora.info('sending tx')
-       var done = await t.randomize(txParams, privateKey)
-      ora.info(`${JSON.stringify(done)}`);
-    } catch (error) {
-      ora.fail(`${JSON.stringify(error)}`);
-    }
+      try {
+        ora.info('sending tx')
+        var done = await t.randomize(txParams, privateKey, _i)
+        ora.info(`${JSON.stringify(done)}`);
+      } catch (error) {
+        ora.fail(`${JSON.stringify(error)}`);
+      }
     ora.info('sent tx')
-     }
+  }
     ora.succeed('generated   ' , accounts.length-1)
     ora.stopAndPersist()
   }
-commander.parse(process.argv)
