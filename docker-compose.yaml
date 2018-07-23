@@ -116,4 +116,33 @@ services:
       - -c
       - |
         geth --datadir="/geth/" --ethvm init /genesis.json
-        geth --datadir="/geth/" --networkid 1234 --etherbase '0x84baabad835e6ca9252658cd6eae0152f6330c09' --mine --minerthreads 1 --ethvm --gcmode archive --rpc --rpcaddr '0.0.0.0' --rpcport 9545 --syncmode full --nodiscover --nousb
+        geth --datadir="/geth/" --networkid 1234 --etherbase '0x84baabad835e6ca9252658cd6eae0152f6330c09' --mine --minerthreads 1 --ethvm --gcmode archive --rpc --rpcaddr '0.0.0.0' --rpcapi "eth,web3,txpool,net" --rpcport 9545 --syncmode full  --nousb
+
+  gethnode:
+    build:
+      context: ./eth
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - rethinkdb
+      - geth
+    volumes:
+      - ./.docker/volumes/node/:/geth
+      - ./.docker/config/geth/nodegenesis.json:/genesis.json
+      - ./.docker/config/geth/keystore/UTC--2018-07-06T11-16-07.166Z--84baabad835e6ca9252658cd6eae0152f6330c09:/geth/keystore/UTC--2018-07-06T11-16-07.166Z--84baabad835e6ca9252658cd6eae0152f6330c09
+    networks:
+      - web
+    ports:
+      - 8545:8545
+    labels:
+      - "traefik.enable=true"
+      - "traefik.default.protocol=http"
+      - "traefik.frontend.rule=Host:node.ethvm.lan"
+      - "traefik.port=8545"
+      - "traefik.backend=geth"
+    command:
+      - /bin/sh
+      - -c
+      - |
+        geth --datadir="/geth/" --ethvm init /genesis.json
+        geth --datadir="/geth/" --networkid 1234   --rpc --rpcapi "eth,web3,txpool,net" --rpcaddr '0.0.0.0' --rpcport 8545   --nousb  --bootnodes="enode://56695247374775ff9930e4e0897952c7020747110803ca500662fbf33314d54e60169bb32f6275f071d5f54283dd734c717db2970aef9efce6c44df6dc801f69@[172.18.0.6]:30303"
