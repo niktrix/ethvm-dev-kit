@@ -37,5 +37,9 @@
     "tslint-config-prettier": "^1.14.0",
     "tslint-consistent-codestyle": "^1.13.2",
     "typescript": "^2.9.2"
+  },
+  "dependencies": {
+    "ethereumjs-abi": "^0.6.5",
+    "ethereumjs-util": "^5.2.0"
   }
 }
