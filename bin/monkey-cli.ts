@@ -8,8 +8,11 @@ import * as Ora from 'ora'
 import * as EthereumTx from 'ethereumjs-tx'
 import * as rpc from '@enkrypt.io/json-rpc2'
 import { Tx } from '../server/src/models/Tx';
-import { Transaction } from './transactions';
-const  data = require( "./accounts.json")
+const  data = require( "./ganacheacc.json")
+
+let accounts = data.accounts
+let from = data.from.address
+let fromprivatekey = data.from.key
 
 const version = '0.1.0'
 
@@ -18,31 +21,58 @@ const ora = new Ora({
   color: 'yellow'
 })
 
-const r = rpc.Client.$create(9545, 'localhost')
+const r = rpc.Client.$create(7545, 'localhost')
 declare const Buffer
 
-var txParams = {
-  from: '0x84baaBAd835e6Ca9252658CD6Eae0152f6330C09',
+let txParams = {
+  from: from,
   to: '0x53d5f815e1ffb43297cdDf1E4C94950ae464c912',
   nonce: '0x00',
-  gas: '0x5208',
-  gasPrice: '0x00009184e',
-  value: '0x0001000001000000001'
+  gas: '0x7B0C',
+  gasPrice: '0x000000001',
+  value: '0x1'
 }
 
 commander.description('Ethereum utility that helps to create random txs to aid in development').version(version, '-v, --version')
 
 
-var accounts = data.accounts
+class Transaction{
+  r:any;
+  ora:any;
+  constructor(RPCClient:any, Ora:any){
+    this.r = RPCClient;
+    this.ora = Ora
+  }
+  send(txParams:any, privateKey:Buffer, count:number) : Promise<any>{
+    return new Promise((resolve, reject) => {
+      this.r.call('eth_getTransactionCount',[txParams.from, 'latest'],(e: Error, res: any): void => {
+        let nonce = parseInt(res)
+        txParams.nonce = "0x"+nonce.toString(16);
+        const tx = new EthereumTx(txParams)
+        tx.sign(privateKey)
+        const serializedTx = '0x' + tx.serialize().toString('hex')
+        this.r.call('eth_sendRawTransaction',  [serializedTx], (e: Error, res: any): void => {
+          if (e) {
+            reject(e)
+            return
+          }
+          resolve(res)
+        })
+      })
+    })
+  }
+}
 
-var t = new Transaction(r,ora);
+
+let t = new Transaction(r, ora);
 commander
   .command('run')
   .alias('r')
   .action(function() {
     ora.text = 'Randomizing txs...'
     ora.start()
-    sendRandomTX(txParams,accounts,t,ora)
+
+    fillandsend(txParams,accounts,t,ora)
   })
 
   commander
@@ -60,8 +90,6 @@ commander
   .action(function(address) {
     ora.text = 'getting bal of ' + address
     ora.start()
-    const privateKey = Buffer.from('e2314951b1e26f5f24c99e1e410187325fe07659ef55affbd14992c1914b787e', 'hex')
-
     r.call('eth_getBalance',  [address,"latest"], (e: Error, res: any): void => {
       if (e) {
         ora.clear()
@@ -76,48 +104,68 @@ commander
 
 commander.parse(process.argv)
 
- async function fillAccountsWithEther(txParams,accounts,t,ora){
-     for (var _i = 0;  _i < accounts.length-1; _i++) {
-      txParams.to = accounts[_i].address
-      var privateKey = Buffer.from("c0191900e365a48547f29f3b50fa3913c0d6f1519288eab7fcbf54e33337e130", 'hex')
+ async function fillAccountsWithEther(txParams,accounts,t,ora) : Promise<any>{
+     for (let account of accounts) {
+      txParams.to = account.address
+      txParams.value = '0x2000000000000000'
+      let privateKey = Buffer.from(fromprivatekey, 'hex')
       try {
         ora.info('sending tx')
-        var done = await t.send(txParams, privateKey, _i)
+        let done = await t.send(txParams, privateKey, 0)
         ora.info(`${JSON.stringify(done)}`);
+        ora.info('sent tx')
       } catch (error) {
         ora.fail(`${JSON.stringify(error)}`);
       }
-    ora.info('sent tx')
   }
-    ora.succeed('generated   ' , accounts.length-1)
+    ora.succeed('Filled all accounts with ether  ')
     ora.stopAndPersist()
+    return Promise.resolve()
 }
 
-
-async function sendRandomTX(txParams,accounts,t,ora){
-  for (var _i = 0; _i < 5; _i++) {
-    var to = Math.floor(Math.random() * (accounts.length-1)) + 0
-    var from = Math.floor(Math.random() * (accounts.length-1)) + 0
+async function sendRandomTX(txParams, accounts, t, ora) : Promise<any>{
+  let i =0;
+  while (i < 20) {
+    let to = Math.floor(Math.random() * (accounts.length-1))
+    let from = Math.floor(Math.random() * (accounts.length-1))
     txParams.to = accounts[to].address
-    var privateKey = Buffer.from(accounts[from].key, 'hex')
-    // t.send(txParams, privateKey,0)
+    txParams.from = accounts[from].address
+    let privateKey = Buffer.from(accounts[from].key, 'hex')
     try {
-      ora.info('sending tx')
-      var done = await t.send(txParams, privateKey, _i)
+      ora.info('sending tx to ')
+      ora.info(`${JSON.stringify(txParams.to)}`);
+      let done = await t.send(txParams, privateKey, 0)
+      ora.info('txhash')
       ora.info(`${JSON.stringify(done)}`);
     } catch (error) {
       ora.fail(`${JSON.stringify(error)}`);
     }
+    i++;
    }
-
-
-
-  for (var _i = 0;  _i < accounts.length-1; _i++) {
-   txParams.to = accounts[_i].address
-   var privateKey = Buffer.from("c0191900e365a48547f29f3b50fa3913c0d6f1519288eab7fcbf54e33337e130", 'hex')
-
- ora.info('sent tx')
+   ora.succeed('sent Random txs   ' , accounts.length-1)
+   ora.stopAndPersist()
+  return Promise.resolve()
 }
- ora.succeed('generated   ' , accounts.length-1)
- ora.stopAndPersist()
+
+async function fillandsend(txParams,accounts,t,ora) : Promise<any>{
+  let balance = await checkBalance(txParams.from)
+  ora.info("balance")
+  ora.info(balance)
+  if(parseInt(balance, 16) > 1000000000000000000){
+    await fillAccountsWithEther(txParams,accounts,t,ora)
+    await sendRandomTX(txParams,accounts,t,ora)
+    return Promise.resolve()
+  }
+  ora.info("NoT enough balance in from Account, Fill atleast 100 ETH")
+}
+
+async function checkBalance(addr) : Promise<any>{
+  return new Promise((resolve, reject) => {
+    r.call('eth_getBalance',  [addr,"latest"], (e: Error, res: any): void => {
+    if (e) {
+      reject(e)
+    }
+     resolve(res)
+  })
+ })
 }
