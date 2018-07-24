@@ -1,21 +1,14 @@
 #!/usr/bin/env node
 
-// Source in progress (everything is harcoded, so don't use it blindly)
-// TODO: Support custom params to allow having different address, different number of txs and many more
-
 import * as rpc from '@enkrypt.io/json-rpc2'
 import commander from 'commander'
 import * as abi  from 'ethereumjs-abi'
 import  EthereumTx from 'ethereumjs-tx'
 import * as EthUtil from 'ethereumjs-util'
 import Ora from 'ora'
-import data from  "./ganacheacc.json"
+import data from  "./accounts.json"
 
-const accounts = data.accounts
-const from = data.from.address
-const fromprivatekey = data.from.key
-const tokencontract = data.tokencontract
-
+const { accounts, tokencontract, from } = data
 
 const version = '0.1.0'
 
@@ -37,12 +30,12 @@ interface Txp {
 }
 
 interface Result {
-  res:string;
-  contractaddress:string;
+  res: string;
+  contractAddress: string;
 }
 
 const txParams = {
-  from,
+  from: from.address,
   to: '0x53d5f815e1ffb43297cdDf1E4C94950ae464c912',
   nonce: '0x00',
   gas: '0x7B0C',
@@ -68,7 +61,7 @@ function send(txP:Txp, privateKey:Buffer) : Promise<Result>{
             reject(e)
             return
           }
-          resolve({"res":res,"contractaddress":EthUtil.bufferToHex(ca)})
+          resolve({"res":res,"contractAddress":EthUtil.bufferToHex(ca)})
           return
         })
       })
@@ -93,11 +86,11 @@ function send(txP:Txp, privateKey:Buffer) : Promise<Result>{
      for (const account of accounts) {
       txParams.to = account.address
       txParams.value = '0x2000000000000000'
-      const privateKey = Buffer.from(fromprivatekey, 'hex')
+      const privateKey = Buffer.from(from.key, 'hex')
       try {
-        ora.info('sending tx to ' + txParams.to)
+        ora.info(`sending ${txParams.value} wei  to   ${txParams.to}` )
         const done = await send(txParams, privateKey)
-        ora.info('Txhash '+JSON.stringify(done.res));
+        ora.info(`Txhash ${JSON.stringify(done.res)}`);
        } catch (error) {
         ora.fail(JSON.stringify(error));
        }
@@ -116,9 +109,9 @@ async function sendRandomTX(txParams:Txp) : Promise<any>{
     txParams.from = accounts[from].address
     const privateKey = Buffer.from(accounts[from].key, 'hex')
     try {
-      ora.info('sending tx to '+ JSON.stringify(txParams.to))
+      ora.info(`sending tx to   ${JSON.stringify(txParams.to)}`)
       const done = await send(txParams, privateKey)
-      ora.info('txhash '+ JSON.stringify(done.res))
+      ora.info(`txhash ${JSON.stringify(done.res)}`)
      } catch (error) {
       ora.fail(JSON.stringify(error));
      }
@@ -131,20 +124,19 @@ async function sendRandomTX(txParams:Txp) : Promise<any>{
 
 async function fillandsend(txParams:Txp) : Promise<any>{
   const balance = await checkBalance(txParams.from)
-  ora.info("balance")
-  ora.info(balance)
+  ora.info(`balance ${balance}`)
   if(parseInt(balance, 16) > 1000000000000000000){
     await fillAccountsWithEther(txParams)
     await sendRandomTX(txParams)
    // await contractTxs(txParams,accounts,t,ora)
     return Promise.resolve()
   }
-  ora.warn("Not enough balance in from Account, Fill atleast 100 ETH")
+  ora.warn('Not enough balance in Account, Fill atleast 100 ETH')
 }
 
 async function contractTxs(txParams:Txp) : Promise<any>{
-  const privateKey = Buffer.from(fromprivatekey, 'hex')
-  let  contractaddress:string = ''
+  const privateKey = Buffer.from(from.key, 'hex')
+  let  contractAddress:string = ''
   txParams.to = '';
   txParams.value ='';
   txParams.data = tokencontract.data;
@@ -152,23 +144,21 @@ async function contractTxs(txParams:Txp) : Promise<any>{
   try {
     ora.info('deploying contract ')
     const done = await send(txParams, privateKey)
-    ora.info('contractaddress ', JSON.stringify(done.contractaddress))
-    contractaddress = done.contractaddress;
+    ora.info(`contractaddress ${done.contractAddress}`)
+    contractAddress = done.contractAddress;
     } catch (error) {
     ora.fail(JSON.stringify(error));
   }
-  txParams.to = contractaddress;
+  txParams.to = contractAddress;
   txParams.value ='';
   txParams.gas = "0x47B760"
   // send token to all accounts
   for (const account of accounts) {
     txParams.data = EthUtil.bufferToHex(abi.simpleEncode( "transfer(address,uint256):(bool)", account.address , 6000 ));
       try {
-        ora.info('calling transfer ')
-        ora.info(JSON.stringify(txParams));
+        ora.info(`calling transfer of contract address  ${JSON.stringify(txParams.to)}`)
         const done = await send(txParams, privateKey)
-        ora.info('txhash ' + JSON.stringify(done.res))
-        ora.info(JSON.stringify(done.res));
+        ora.info(`txhash ${JSON.stringify(done.res)}`)
         } catch (error) {
         ora.fail(JSON.stringify(error));
       }
@@ -248,15 +238,3 @@ commander
   })
 
 commander.parse(process.argv)
-  // get token balance
-  // txParams.data = EthUtil.bufferToHex(abi.simpleEncode( "balanceOf(address):(uint256)", txParams.to ));
-  // try {
-  //   ora.info('calling contract ')
-  //   ora.info(`${JSON.stringify(txParams)}`);
-
-  //   let done = await t.ethcall(txParams, privateKey, 0)
-  //   ora.info('txhash')
-  //   ora.info(`${JSON.stringify(done)}`);
-  //    } catch (error) {
-  //   ora.fail(`${JSON.stringify(error)}`);
-  // }
