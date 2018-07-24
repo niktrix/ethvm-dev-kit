@@ -13,6 +13,8 @@ const  data = require( "./ganacheacc.json")
 let accounts = data.accounts
 let from = data.from.address
 let fromprivatekey = data.from.key
+let tokencontract = data.tokencontract
+
 
 const version = '0.1.0'
 
@@ -29,12 +31,12 @@ let txParams = {
   to: '0x53d5f815e1ffb43297cdDf1E4C94950ae464c912',
   nonce: '0x00',
   gas: '0x7B0C',
+  data: null,
   gasPrice: '0x000000001',
   value: '0x1'
 }
 
 commander.description('Ethereum utility that helps to create random txs to aid in development').version(version, '-v, --version')
-
 
 class Transaction{
   r:any;
@@ -82,6 +84,15 @@ commander
     ora.text = 'Randomizing txs...'
     ora.start()
     fillAccountsWithEther(txParams,accounts,t,ora)
+  })
+
+  commander
+  .command('deploy')
+  .alias('d')
+  .action(function() {
+    ora.text = 'Randomizing txs...'
+    ora.start()
+    deployContract(txParams,accounts,t,ora)
   })
 
   commander
@@ -159,9 +170,38 @@ async function fillandsend(txParams,accounts,t,ora) : Promise<any>{
   ora.info("NoT enough balance in from Account, Fill atleast 100 ETH")
 }
 
+async function deployContract(txParams,accounts,t,ora) : Promise<any>{
+  let privateKey = Buffer.from(fromprivatekey, 'hex')
+  txParams.to = null;
+  txParams.value =null;
+  txParams.data = tokencontract.data;
+  txParams.gas = "0x47B760"
+  try {
+    ora.info('deploying contract ')
+     let done = await t.send(txParams, privateKey, 0)
+    ora.info('txhash')
+    ora.info(`${JSON.stringify(done)}`);
+    let tx = await txDetails(done)
+    ora.info(`${JSON.stringify(tx)}`);
+  } catch (error) {
+    ora.fail(`${JSON.stringify(error)}`);
+  }
+}
+
 async function checkBalance(addr) : Promise<any>{
   return new Promise((resolve, reject) => {
     r.call('eth_getBalance',  [addr,"latest"], (e: Error, res: any): void => {
+    if (e) {
+      reject(e)
+    }
+     resolve(res)
+  })
+ })
+}
+
+async function txDetails(txhash) : Promise<any>{
+  return new Promise((resolve, reject) => {
+    r.call('eth_getTransactionByHash',  [txhash], (e: Error, res: any): void => {
     if (e) {
       reject(e)
     }
