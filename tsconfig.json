@@ -1,19 +1,4 @@
 {
-<<<<<<< HEAD
-    "compilerOptions": {
-        "lib": ["dom", "es5", "es2015"],
-        "target": "es5",
-        "strict": false,
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "resolveJsonModule": true,
-        "sourceMap": true,
-        "allowSyntheticDefaultImports": true,
-        "noImplicitAny": false,
-        "typeRoots": ["node_modules/@types"],
-        "noImplicitThis": false
-    }
-=======
   "compilerOptions": {
     "lib": ["es2018"],
     "target": "es6",
@@ -25,6 +10,8 @@
     "removeComments": true,
     "allowSyntheticDefaultImports": true,
     "inlineSourceMap": true,
+    "resolveJsonModule":true,
+    "esModuleInterop":true,
     "allowJs": false
   },
   "include": [
@@ -33,5 +20,4 @@
   "exclude": [
     "node_modules"
   ]
->>>>>>> bf36c1698b976f42362d1ce1fd1eaa0961d9c661
 }
