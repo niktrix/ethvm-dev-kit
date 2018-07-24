@@ -87,22 +87,23 @@ services:
       - "traefik.dashboard.protocol=http"
       - "traefik.dashboard.backend=ethvm_socket_server"
       - "traefik.dashboard.port=8080"
+    command: >
+      bash -c "rm -rf /data/* && rethinkdb --bind all"
 
   geth:
     build:
       context: ./eth
-      dockerfile: Dockerfile
+      dockerfile: ../.docker/images/eth/Dockerfile
     restart: unless-stopped
     depends_on:
       - rethinkdb
     volumes:
-      - ./.docker/volumes/geth/:/geth
       - ./.docker/config/geth/genesis.json:/genesis.json
-      - ./.docker/config/geth/keystore/UTC--2018-07-06T11-16-07.166Z--84baabad835e6ca9252658cd6eae0152f6330c09:/geth/keystore/UTC--2018-07-06T11-16-07.166Z--84baabad835e6ca9252658cd6eae0152f6330c09
+      - ./.docker/config/geth/keystore/:/keystore/
     networks:
       - web
     ports:
-      - 9545:9545
+      - 8545:8545
     labels:
       - "traefik.enable=true"
       - "traefik.default.protocol=http"
@@ -112,8 +113,10 @@ services:
     environment:
       - RETHINKDB_URL=http://rethinkdb:28015
     command:
-      - /bin/sh
+      - /bin/zsh
       - -c
       - |
-        geth --datadir="/geth/" --ethvm init /genesis.json
-        geth --datadir="/geth/" --networkid 1234 --etherbase '0x84baabad835e6ca9252658cd6eae0152f6330c09' --mine --minerthreads 1 --ethvm --gcmode archive --rpc --rpcaddr '0.0.0.0' --rpcport 9545 --syncmode full --nodiscover --nousb
+        rm -rf /geth && mkdir -p /geth/keystore
+        cp -a /keystore/. /geth/keystore/
+        geth --datadir '/geth' --ethvm init /genesis.json
+        geth --datadir '/geth' --networkid 1234 --mine --minerthreads 1 --ethvm --gcmode archive --rpc --rpcaddr '0.0.0.0' --rpcapi 'personal,db,eth,net,web3,txpool,miner' --syncmode full --nousb --nodiscover --unlock '84baabad835e6ca9252658cd6eae0152f6330c09' --password =(echo '123456789')
