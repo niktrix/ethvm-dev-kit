@@ -1,12 +1,9 @@
 #!/usr/bin/env node
 
-// Source in progress (everything is harcoded, so don't use it blindly)
-// TODO: Support custom params to allow having different address, different number of txs and many more
-
-import * as commander from 'commander'
-import * as Ora from 'ora'
-import * as EthereumTx from 'ethereumjs-tx'
 import * as rpc from '@enkrypt.io/json-rpc2'
+import * as commander from 'commander'
+import * as EthereumTx from 'ethereumjs-tx'
+import * as Ora from 'ora'
 
 const version = '0.1.0'
 
@@ -22,7 +19,7 @@ commander.description('Ethereum utility that helps to create random txs to aid i
 commander
   .command('run')
   .alias('r')
-  .action(function() {
+  .action(() => {
     ora.text = 'Randomizing txs...'
     ora.start()
 
@@ -42,17 +39,21 @@ commander
 
     const serializedTx = '0x' + tx.serialize().toString('hex')
 
-    r.call('eth_sendRawTransaction',  [serializedTx], (e: Error, res: any): void => {
-      if (e) {
-        ora.clear()
-        ora.fail(`${JSON.stringify(e)}`)
-        ora.stopAndPersist()
-        return
-      }
+    r.call(
+      'eth_sendRawTransaction',
+      [serializedTx],
+      (e: Error, res: any): void => {
+        if (e) {
+          ora.clear()
+          ora.fail(`${JSON.stringify(e)}`)
+          ora.stopAndPersist()
+          return
+        }
 
-      ora.succeed('Txs sent!')
-      ora.stopAndPersist()
-    })
+        ora.succeed('Txs sent!')
+        ora.stopAndPersist()
+      }
+    )
   })
 
 commander.parse(process.argv)
