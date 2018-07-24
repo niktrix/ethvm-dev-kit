@@ -8,7 +8,7 @@
 
 A dockerized environment for developing with ease and joyness the EthVM project.
 
-This repository is just composed of two projects and a simple Dockerfile and the following git submodules:
+This repository is just composed of three projects and a simple Dockerfile and the following `git submodules`:
 
 - [EthVM: Frontend](https://github.com/enKryptIO/ethvm)
 - [EthVM: Socket Server](https://github.com/enKryptIO/ethvm-socket-server)
@@ -21,6 +21,8 @@ Just issue this command on the terminal:
 ```sh
 $ git clone --recurse-submodules https://github.com/enKryptIO/ethvm-dev-kit
 ```
+
+When everyhing is done, just make sure that each of the submodules are on the `master` branch (or the one you prefer to work on).
 
 ## Perequisites
 
@@ -56,46 +58,9 @@ $ cd client
 $ ln -s ../.git/modules/ethvm-frontend .git
 ```
 
-### Configuring ethereum difficulty
-
-By default, this project uses a modified version of [`go-ethereum`](https://github.com/enKryptIO/go-ethereum) (where we add all our magic), but as we are developing locally, we prefer to test in our private Ethereum network (this will add the benefit of not having to fully synchronise with `mainnet` neither `ropsten`).
-
-Take a closer look on how is generated the `genesis.json` file in the `docker-compose.yaml`, but in order to allow having insta mining, the best option you can have is to modify directly `go-ethereum` difficulty algorithm to return a fixed difficulty value (this will avoid changes in the difficulty, and the mining process will be the same, producing a block each 2s approx). To do so:
-
-```sh
-# In parent dir
-$ vim eth/consensus/ethash/consensus.go
-```
-
-Find the method `CalcDifficulty`:
-
-```go
-
-func CalcDifficulty(config *params.ChainConfig, time uint64, parent *types.Header) *big.Int {
-	next := new(big.Int).Add(parent.Number, big1)
-	switch {
-	case config.IsByzantium(next):
-		return calcDifficultyByzantium(time, parent)
-	case config.IsHomestead(next):
-		return calcDifficultyHomestead(time, parent)
-	default:
-		return calcDifficultyFrontier(time, parent)
-	}
-}
-```
-
-And replace it to (or whatever amount you want):
-
-```go
-
-func CalcDifficulty(config *params.ChainConfig, time uint64, parent *types.Header) *big.Int {
-	return big.NewInt(1)
-}
-```
-
 ### Windows 10
 
-Windows 10 is becoming a very sexy operating system to develop also with classical *nix applications. 
+Windows 10 is becoming a very sexy operating system to develop, even with classical *nix applications. 
 
 Although, there are some caveats we need to take care of, at the point while we were testing, we found the following issues:
 
@@ -115,6 +80,7 @@ Or you can take the classical approach to edit and add these entries in `/etc/ho
 127.0.0.1       rethink.ethvm.lan
 127.0.0.1       rethink.dashboard.ethvm.lan
 127.0.0.1       ws.ethvm.lan
+127.0.0.1       redis.ethvm.lan
 127.0.0.1       ethvm.lan
 ```
 
