@@ -9,14 +9,11 @@ import Ora from 'ora'
 import data from  "./accounts.json"
 
 const { accounts, tokencontract, from } = data
-
 const version = '0.1.0'
-
 const ora = new Ora({
   spinner: 'dots',
   color: 'yellow'
 })
-
 const r = rpc.Client.$create(7545, 'localhost')
 
 interface Txp {
@@ -122,7 +119,7 @@ async function sendRandomTX(txParams:Txp) : Promise<any>{
   return Promise.resolve()
 }
 
-async function fillandsend(txParams:Txp) : Promise<any>{
+async function fillAndSend(txParams:Txp) : Promise<any>{
   const balance = await checkBalance(txParams.from)
   ora.info(`balance ${balance}`)
   if(parseInt(balance, 16) > 1000000000000000000){
@@ -131,7 +128,7 @@ async function fillandsend(txParams:Txp) : Promise<any>{
    // await contractTxs(txParams,accounts,t,ora)
     return Promise.resolve()
   }
-  ora.warn('Not enough balance in Account, Fill atleast 100 ETH')
+  ora.warn('Not enough balance in Account, Fill at least 100 ETH')
 }
 
 async function contractTxs(txParams:Txp) : Promise<any>{
@@ -198,7 +195,7 @@ commander
   .action( () => {
     ora.text = 'Randomizing txs...'
     ora.start()
-    fillandsend(txParams)
+    fillAndSend(txParams)
   })
 
   commander
