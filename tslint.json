@@ -19,6 +19,7 @@
       "allowElseIf": true
     }],
     "radix": false,
-    "no-unused-expression": false
+    "no-unused-expression": false,
+    "quotemark": [true, "single"]
   }
 }
