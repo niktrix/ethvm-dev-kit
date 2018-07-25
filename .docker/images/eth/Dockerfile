@@ -1,6 +1,8 @@
 # Build Geth in a stock Go builder container
 FROM golang:1.10-alpine as builder
 
+RUN echo -e "http://uk.alpinelinux.org/alpine/v3.5/main\nhttp://uk.alpinelinux.org/alpine/v3.5/community" > /etc/apk/repositories
+
 RUN apk add --no-cache make gcc musl-dev linux-headers
 
 ADD . /go-ethereum
